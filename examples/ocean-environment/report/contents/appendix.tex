@@ -1,0 +1,44 @@
+﻿\chapter{\texorpdfstring{附\quad 录}{附录}}
+
+\begin{appendixenv}
+
+\section{复现实验命令}
+
+建议在项目根目录执行如下命令：
+
+\begin{lstlisting}[language=bash,caption={复现实验与图表生成命令},label={lst:reproduce}]
+python 海洋环境数据/run_experiments.py
+python 海洋环境数据/plot_figures.py
+\end{lstlisting}
+
+\section{主要输出文件说明}
+
+\begin{table}[htbp]
+    \centering
+    \caption{实验主要输出文件与用途}
+    \label{tab:outputs}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{ll}
+        \toprule
+        文件路径 & 说明 \\
+        \midrule
+        \texttt{海洋环境数据/outputs/summary.json} & 样本规模、时间范围、最优模型和聚类摘要 \\
+        \texttt{海洋环境数据/outputs/metrics\_hourly.csv} & 小时级回归指标对比 \\
+        \texttt{海洋环境数据/outputs/metrics\_daily.csv} & 天级回归指标对比 \\
+        \texttt{海洋环境数据/outputs/cluster\_profile.csv} & 聚类簇画像统计 \\
+        \texttt{海洋环境数据/outputs/cluster\_counts.csv} & 聚类样本分布统计 \\
+        \texttt{海洋环境数据/figures/图1\_小时级预测散点图.png} & 小时级预测-真实散点图 \\
+        \texttt{海洋环境数据/figures/图2\_天级预测散点图.png} & 天级预测-真实散点图 \\
+        \texttt{海洋环境数据/figures/图3\_聚类样本分布柱状图.png} & 聚类样本分布柱状图 \\
+        \texttt{海洋环境数据/figures/图4\_聚类簇画像雷达图.png} & 聚类簇画像雷达图 \\
+        \texttt{海洋环境数据/figures/图5\_盐度时间序列折线图.png} & 盐度时间序列折线图 \\
+        \texttt{海洋环境数据/figures/图6\_模型误差对比柱状图.png} & 模型误差对比柱状图 \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+\section{说明}
+
+正文中的指标、图表与本附录文件一一对应，可直接用于教师复核与后续模型迭代对比。
+
+\end{appendixenv}

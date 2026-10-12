@@ -1,0 +1,29 @@
+\documentclass[songnumber]{tjuthesis-Bachelor}  %通过是否传入参数songnumber来控制是否使用宋体数字作为参考文献序号
+
+\begin{document}
+
+\include{contents/introduction} %封面及摘要填写处
+
+\makecover  %生成封面页
+
+\frontmatter    %导言部分开始使用罗马数字页码，无页眉
+
+\makeabstractcn   %仅生成中文摘要页
+
+\tableofcontents    % 自动生成目录
+
+\mainmatter   %正文部分开始使用阿拉伯数字页码，开始页眉显示
+
+\include{contents/chapter1} %第一章内容
+
+\include{contents/chapter2} %第二章内容
+
+\include{contents/chapter3} %第三章内容
+
+\backmatter %后续部分章节无编号，页眉页码保持正文一致
+
+\printbibliography[heading=bibintoc]    %生成参考文献页，并将其加入目录
+
+\include{contents/appendix} %附录内容
+
+\end{document}

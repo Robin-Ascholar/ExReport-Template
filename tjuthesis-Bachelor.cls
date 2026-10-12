@@ -136,7 +136,7 @@
 \renewcommand{\thetable}{\arabic{chapter}-\arabic{table}}         % 使表编号为 7-1 的格式
 \renewcommand{\theequation}{\arabic{chapter}-\arabic{equation}}   % 使公式编号为 7-1 的格式
 
-\graphicspath{{figures/}}   % 定义所有的图像文件在 figures 子目录下
+\graphicspath{{figures/}{海洋环境数据/figures/}}   % 支持根目录与课程数据目录中的图像资源
 
 \newcommand{\figuremacro}[5]{ %图片插入宏
   \begin{figure}[#1] %第一个参数是浮动体样式设置
@@ -212,7 +212,7 @@
         \includegraphics[width=0.4\textwidth]{tjuname.eps} %插入天津大学校名
         
         \vspace{21pt}
-        \zihao{2}{\heitibf{本科生毕业论文}}
+        \zihao{2}{\heitibf{课程实验报告}}
         \vfill %动态填充空隙
         \includegraphics[width=0.4\textwidth]{tjulogo.eps} %插入天津大学校徽
 
@@ -256,6 +256,17 @@
 
     \noindent {\zihao{4}\textbf{KEY WORDS:} }
     \@ckeyworden
+}
+
+\newcommand{\makeabstractcn}{ %仅生成中文摘要页
+    \chapter*{\zihao{2}\textbf{\songti 摘 \qquad 要}}
+    \thispagestyle{noheader}
+    \@cabstractcn
+
+    \bigskip
+
+    \noindent {\songti\zihao{4}\textbf{关键词：}}
+    \@ckeywordcn
 }
 
 \newenvironment{appendixenv}{ %附录环境，重置章节编号并修改编号格式

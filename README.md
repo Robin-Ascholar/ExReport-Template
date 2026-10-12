@@ -1,74 +1,76 @@
-# 天津大学2026届本科生毕业论文Latex模板
+# TJU Thesis Bachelor Template
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![参考项目1](https://img.shields.io/badge/Reference-hyzhangtjnk/TJU--2024--Graduation--Thesis-green)](https://github.com/hyzhangtjnk/TJU-2024-Graduation-Thesis-latex)
-[![参考项目2](https://img.shields.io/badge/Reference-haimingz/tjuthesis-green)](https://github.com/haimingz/tjuthesis)
+天津大学本科生毕业论文与课程实验报告的 LaTeX 模板仓库。模板按天津大学 2026 届本科生毕业论文格式整理，也适合结构相近的课程实验报告。
 
-本项目是一个非官方的、师从往年优秀模板的、尽可能符合天津大学本科生毕业设计（论文）撰写规范的 LaTeX 模板。旨在让同学们从繁琐的排版工作中解脱出来，专注于论文内容的撰写。
+根目录是可复用的干净模板；`examples/` 保存已经完成的实验示例。每次开始新报告时，建议从仓库下载或复制根目录模板，避免在旧实验目录上继续修改。
 
-# 项目介绍
-本模板基于ctexbook文档类构建，严格参照《【2025修订版】天津大学本科生毕业设计（论文）相关材料撰写规范》以及《【2025修订版】1-1天津大学本科生毕业论文模板》进行设计。
+## 目录结构
 
-目前可能是功能最完善、封装最完整、条理最清晰？的天津大学本科生毕设设计（论文）Latex模板，主要特性包括：
+```text
+.
+├── contents/                 # 封面信息、摘要、章节和附录
+├── figures/                  # 学校 Logo、校名等模板资源
+├── examples/                 # 已完成的实验示例，不参与根目录编译
+├── tjuthesis-Bachelor.cls    # 模板格式定义
+├── tjumian.tex               # 唯一编译入口
+├── reference.bib             # 参考文献库
+├── 独创性声明.pdf             # 签字后替换的声明页
+└── .vscode/                  # LaTeX Workshop 编译配置
+```
 
-1. 格式全自动：自动设置页眉、页脚、章节标题、字体大小、行间距等格式。
+模板基于 `ctexbook` 构建，参考天津大学本科生毕业设计（论文）相关撰写规范及往年开源模板。格式文件仅提供排版能力，具体课程的封面字段、章节要求和评分标准仍以任课教师发布的要求为准。
 
-2. 封面与声明：提供了论文封面、独创性声明的封装（需要手动填写信息以及签名）。
+## 快速开始
 
-3. 中英文支持：完美支持中英文混排，提供中英文摘要环境。
+### 环境要求
 
-4. 参考文献：配置了符合学校要求的 BibLatex 参考文献格式即遵循 GB/T 7714-2015 之要求。
+当前模板主要在 Windows + TeX Live 环境下测试。需要安装 XeLaTeX、Biber 和 `latexmk`，并确保系统中存在 `SimSun`、`SimHei`、`Times New Roman` 等字体。
 
-5. 图表公式：预设了图表标题格式和公式编号样式，使用简单。
+Overleaf 和 macOS 未在本仓库中做完整验证；如果字体名称不同，需要修改 `tjuthesis-Bachelor.cls` 中的字体设置。
 
-6. 代码高亮：如果涉及代码，提供了简单的代码高亮环境。（本模板只提供了一个简单的代码高亮模板，由于相关文件并没有对代码的格式进行规定，所以各位可以根据自己的喜好自行修改）
+### 使用方法
 
-7. PDF书签：生成的PDF包含完整的书签，方便导航。
+1. 下载仓库后，在根目录打开 VS Code。
+2. 在 `contents/introduction.tex` 中填写 `\ctitle`、`\cauthor`、`\cnumber`、`\csupervisor` 等封面信息，以及中英文摘要和关键词。
+3. 在 `contents/` 下编辑章节。增删章节时，同步修改 `tjumian.tex` 中的 `\include`。
+4. 将图片放入 `figures/`，使用模板提供的 `\figuremacro`、`\tablemacro` 命令插入图表，并使用 `\ref{label}` 交叉引用。
+5. 在 `reference.bib` 中添加 BibLaTeX 文献条目，在正文中使用 `\cite{label}` 引用。
+6. 如需加入签字后的独创性声明，将扫描件命名为 `独创性声明.pdf` 并替换根目录文件；是否插入声明页由 `tjumian.tex` 控制。
+7. 使用 LaTeX Workshop 的“构建 LaTeX 项目”编译。辅助文件已写入 `.gitignore`，也可以使用插件的“清除辅助文件”功能清理。
 
-# 快速开始
-系统要求:
+命令行编译：
 
-本模板只使用Windows的TeX Live编译器进行过测试，没有经过Overleaf和Mac系统的测试。
+```powershell
+latexmk -xelatex -interaction=nonstopmode -file-line-error tjumian.tex
+```
 
-- **本模板在Overleaf上编译会超出免费编译时长，为各位省钱就不做Overleaf版本适配了**
+清理编译产物：
 
-- **作者身边也没有用Mac的同学，但是如果也是使用Tex Live进行编译的话应该只需要修改字体设置中指定的系统字体？** 
+```powershell
+latexmk -C tjumian.tex
+```
 
-编译链：
+## 开始一份新报告
 
-- **首选Latexmk(xelatex)，会自动选择合适的编译链**
+建议流程：
 
-- 其次可以使用：XeLatex->biber->XeLatex->XeLatex
+1. 复制仓库根目录到新的报告目录，并删除或保留 `examples/`；
+2. 修改 `contents/introduction.tex` 的封面、摘要和关键词；
+3. 按实验要求修改章节文件，图片统一放入 `figures/`；
+4. 将数据分析代码放在单独的 `scripts/` 或 `data/` 目录，不和模板源码混放；
+5. 编译检查目录、引用、图表和参考文献，提交前运行 `latexmk -C` 清理辅助文件；
+6. 最终提交源文件和 PDF，实验数据是否入库按文件大小、版权和课程要求决定。
 
-使用方法:
+不建议把个人姓名、学号、实验数据和编译产物直接提交到模板根目录。模板仓库可以长期公开维护，具体报告则应作为独立项目或 `examples/` 下的归档。
 
-1. 在 Github 页面的 Release 部分下载最新的打包文件，解压后将文件夹打开至IDE即可编译。
+## 如何贡献
 
-2. 基本信息填写：在 contents/introduction.tex 文件中，找到 `\ctitle`、`\cauthor`、`\cnumber`、`\csupervisor` 等命令，填写你的论文题目、姓名、学号、导师等信息，同样在该文件中填写中英文摘要和关键词。
+如果发现模板问题，欢迎提交 Issue 或 Pull Request。提交前请确认根目录模板可以正常编译，并且没有将个人信息、实验数据和 LaTeX 辅助文件混入模板源码。
 
-3. 撰写章节：在 contents/ 文件夹下对应的 chapterX.tex 文件中撰写各个章节的内容，如需对章节进行增减还需要在 tjumain.tex 文件中修改插入的章节文件。
+## 许可证
 
-4. 插入图片和表格：将图片放入 figures/ 文件夹，然后在文中使用 `\figuremacro` 命令插入（该宏的参数可见 cls 文件注释），表格也进行了封装，使用 `\tablemacro` 命令插入即可，两者的引用包括公式都是使用 `\ref{label}` 命令引用。
+本项目基于 GPL-3.0 许可证开源，详情请参见 `LICENSE` 文件。
 
-5. 引用参考文献：在 reference.bib 文件（模板中的bib文件是以原模板生成的伪文献信息）中，以 BibLatex 格式添加你的文献条目。在文中需要引用的地方使用 `\cite{label}` 命令。
+## 致谢
 
-6. 独创性声明：如需将签过字的独创性声明加入电子版文章，只需要将其扫描后命名为 独创性声明.pdf 并替换模板根目录原文件编译即可。
-
-7. 如果您使用Latex Workshop插件进行编译并使用本模板提供的vscode配置文件的话，您可以在插件中直接 **构建Latex项目** ，并在编译完成后使用 **清除辅助文件** 功能一键删除所有中间文件。
-
-# 如何贡献
-如果你在使用过程中发现了任何问题，或者有改进的建议，非常欢迎：
-
-- 提交 **Issue** 描述问题或建议。
-
-- 或者 Fork 本仓库，修改后提交 **Pull Request**。
-
-# 许可证
-本项目基于 GPL-3.0 许可证开源，详情请参见 LICENSE 文件。
-
-# 致谢
-感谢所有 LaTeX 宏包的开发者和维护者。
-
-在制作这份模板的时候对`hyzhangtjnk/TJU-2024-Graduation-Thesis`项目和`haimingz/tjuthesis`进行了参考和学习，感谢这两位作者的开源。
-
-祝各位同学毕业顺利，论文成功！
+本模板参考了 `hyzhangtjnk/TJU-2024-Graduation-Thesis` 和 `haimingz/tjuthesis`，感谢相关作者和 LaTeX 宏包维护者。

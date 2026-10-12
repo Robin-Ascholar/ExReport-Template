@@ -1,0 +1,64 @@
+﻿\chapter{介绍、数据与预处理}
+
+\section{介绍（5分）}
+
+本实验面向真实海洋环境监测业务数据展开，核心目标是基于多源观测信息分析盐度变化规律并完成预测。海洋环境变化由海流输运、波浪扰动、气象驱动、水质演变以及设备状态共同作用决定，单表分析通常只能得到局部结论，难以支持稳定建模与规律解释。课程实验将该类真实数据作为训练对象，本质上是将机器学习方法应用到“高噪声、多约束、异步采样”的工程场景中\cite{zhou_ml_2016,course_ppt_2026}。
+
+结合课程要求与评分维度，本文采用“先小颗粒度、再大颗粒度、最后结构解释”的路线：先建立小时级回归基线，再进行天级聚合回归对比，最后通过聚类识别环境状态差异。该路线对应了“任务定义、方法流程、结果解释与反思”的完整闭环，并保证每一步都可由输出文件复核。
+
+\section{数据说明与问题定义}
+
+实验数据包含训练集与测试集，每个集合均由五张监测表组成：海流、波浪、水质、气象、设备状态。各表通过站点标识\texttt{ZDMC}与采样时间\texttt{DataTime}关联。融合后的训练集样本量为39472条，时间范围为2023-02-23 15:00:00至2025-07-24 19:00:00；融合后的测试集样本量为9869条，时间范围为2025-07-24 20:00:00至2026-04-08 19:00:00。该划分满足“历史训练、未来测试”的严格时序外推评估。
+
+本文设置一个主任务与一个辅助任务：
+\begin{itemize}
+    \item 主任务：监督学习回归，利用多源特征预测盐度\texttt{Sal}，评价指标为MAE、RMSE、$R^2$；
+    \item 辅助任务：无监督聚类，在天级特征空间识别环境状态类型，并分析簇间物理差异。
+\end{itemize}
+
+需要强调的是，本实验优先以盐度预测为主线。原因在于盐度标签可用性更高，能够保证建模链条稳定；营养盐相关内容在讨论部分作为机制拓展进行补充。
+
+\section{多源数据整合、预处理与关键代码（10分）}
+
+\subsection{数据整合策略}
+
+多源整合采用“水质表锚定+其余四表左连接”策略：以\texttt{03.水质数据}作为主表，其他来源按\texttt{ZDMC + DataTime}左连接。该方案将监督任务可用性作为优先目标，在不牺牲标签可用性的前提下最大化保留外部特征信息。
+
+\begin{lstlisting}[language=Python,caption={以水质表为锚点的多源左连接},label={lst:merge-anchor}]
+anchor_file = next((f for f in files if "03." in f.name), files[0])
+merged = read_table(anchor_file)
+for file_path in other_files:
+    df = read_table(file_path)
+    merged = merged.merge(df, on=["ZDMC", "DataTime"], how="left")
+\end{lstlisting}
+
+\subsection{清洗规则与异常处理}
+
+考虑到真实监测数据存在设备噪声和突发工况，本文采用“字段级约束+缺失化处理”：对明显违反物理范围的观测值，仅将对应字段置为缺失，不直接删除整条样本。规则包括：\texttt{pH}$\in[0,14]$，\texttt{Sal}$\in[0,45]$，\texttt{TDS\_ppt}$\ge 0$，\texttt{DO\_ppm}$\ge 0$。该策略减少了非法值对模型的污染，同时尽量保留其余可用特征。
+
+此外，统一将\texttt{DataTime}转换为时间戳，删除主键缺失样本，并按\texttt{ZDMC + DataTime}去重，保证样本唯一性与评估公平性。
+
+\subsection{特征工程与时间颗粒度构造}
+
+为表达周期性，本文在\texttt{hour/dayofweek/month}基础上加入正余弦编码（\texttt{hour\_sin/hour\_cos}、\texttt{month\_sin/month\_cos}），以避免周期边界断裂问题。核心代码如下。
+
+\begin{lstlisting}[language=Python,caption={周期时间特征构造},label={lst:time-cyclic}]
+out["hour_sin"] = np.sin(2 * np.pi * out["hour"] / 24.0)
+out["hour_cos"] = np.cos(2 * np.pi * out["hour"] / 24.0)
+out["month_sin"] = np.sin(2 * np.pi * out["month"] / 12.0)
+out["month_cos"] = np.cos(2 * np.pi * out["month"] / 12.0)
+\end{lstlisting}
+
+颗粒度设置分为两层：小时级用于基线回归；天级按\texttt{ZDMC + date}聚合均值、标准差、最小值和最大值，用于稳健性对比与结构解释。
+
+\subsection{缺失处理、编码与防泄漏}
+
+建模采用\texttt{Pipeline + ColumnTransformer}：数值特征中位数填补并标准化，类别特征众数填补并One-Hot编码。天级阶段显式删除\texttt{Sal\_*}同日统计列，防止目标泄漏，关键代码如下。
+
+\begin{lstlisting}[language=Python,caption={天级建模的目标泄漏防护},label={lst:anti-leak}]
+leak_cols = [c for c in X.columns if c.startswith("Sal_")]
+if leak_cols:
+    X = X.drop(columns=leak_cols)
+\end{lstlisting}
+
+上述流程对应评分中的“多源对应关系说明、预处理方法说明、关键代码呈现”三项要求，且与后续模型结果保持因果一致\cite{rubric_2025}。

@@ -1,0 +1,146 @@
+﻿\chapter{算法设计与结果分析}
+
+\section{算法选择与设计（45分）}
+
+\subsection{任务定义与方法选择合理性}
+
+本实验在课程已学方法范围内，选择\texttt{LinearRegression}与\texttt{Ridge}完成监督回归对比。线性回归作为可解释基线，Ridge用于缓解多源特征条件下的共线性与噪声放大问题，其目标函数中L2正则项可提升参数稳定性与泛化能力\cite{li_statlearn_2019,scikit_learn_2011}。
+
+辅助任务采用KMeans聚类。该任务不直接参与盐度回归训练，而是用于识别环境状态簇并解释误差来源，形成“预测+解释”的联动分析框架。
+
+\subsection{流程设计与实现细节}
+
+整体流程为三层：
+\begin{itemize}
+    \item 小时级回归：建立原始时间分辨率基线；
+    \item 天级回归：对比时间聚合后噪声抑制与信息损失；
+    \item 聚类分析：在天级特征空间做结构解释。
+\end{itemize}
+
+为保证评估真实性，训练与测试严格按时序划分，不做随机打散。Ridge参数在训练集内使用\texttt{TimeSeriesSplit}进行时间序列交叉验证，候选\texttt{alpha}为\{0.1, 1, 10, 100\}，最终小时级与天级均选出\texttt{alpha=100}。
+
+\section{结果分析与可视化（15分）}
+
+\subsection{小时级回归结果}
+
+小时级指标见表\ref{tab:hourly-metrics}。Ridge在MAE、RMSE和$R^2$上均优于普通线性回归，尤其RMSE从18.835下降到8.793，说明正则化显著提升了线性体系在多源噪声数据上的稳健性。
+
+\begin{table}[htbp]
+    \centering
+    \caption{小时级回归指标对比（测试集）}
+    \label{tab:hourly-metrics}
+    \begin{tabular}{lccc}
+        \toprule
+        模型 & MAE & RMSE & $R^2$ \\
+        \midrule
+        Ridge(alpha=100.0) & 3.6692 & 8.7930 & 0.0160 \\
+        LinearRegression & 3.8314 & 18.8352 & -3.5151 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\figuremacro{htbp!}
+            {图1_小时级预测散点图.png}
+            {小时级最佳模型预测-真实散点图}
+            {0.88}
+            {fig:hourly-scatter}
+
+图\ref{fig:hourly-scatter}显示预测点在低到中等盐度区间具有较稳定聚集，高误差主要出现在少量长尾样本，提示复杂工况时段仍是误差核心来源。
+
+\subsection{天级回归结果}
+
+天级指标见表\ref{tab:daily-metrics}。普通线性回归在该颗粒度下明显失稳，而Ridge仍保持可用误差水平。这表明天级聚合会同时带来噪声平滑与关键信息损失，需结合任务目标选择颗粒度，而非简单认为“聚合一定更好”。
+
+\begin{table}[htbp]
+    \centering
+    \caption{天级回归指标对比（测试集）}
+    \label{tab:daily-metrics}
+    \begin{tabular}{lccc}
+        \toprule
+        模型 & MAE & RMSE & $R^2$ \\
+        \midrule
+        Ridge(alpha=100.0) & 6.0130 & 12.7383 & -1.1766 \\
+        LinearRegression & 25.9324 & 267.1087 & -956.0276 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\figuremacro{htbp!}
+            {图2_天级预测散点图.png}
+            {天级最佳模型预测-真实散点图}
+            {0.88}
+            {fig:daily-scatter}
+
+图\ref{fig:daily-scatter}可见天级散点离散度明显高于小时级，与表\ref{tab:daily-metrics}中的RMSE上升趋势一致。
+
+\subsection{聚类结果与状态解释}
+
+基于\texttt{summary.json}，最优簇数为2，轮廓系数为0.2772，说明簇间分离度中等但存在有效结构差异。簇画像与样本分布见表\ref{tab:cluster-profile}和表\ref{tab:cluster-counts}。
+
+\begin{table}[htbp]
+    \centering
+    \caption{聚类簇画像（天级特征均值）}
+    \label{tab:cluster-profile}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{ccccccc}
+        \toprule
+        cluster & Sal\_mean & Temp\_C\_mean & pH\_mean & Turb\_NTU\_mean & WSavg\_mean & Abs\_speed\_mean \\
+        \midrule
+        0 & 21.4016 & 21.8040 & 7.7272 & 106.4911 & 4.5332 & 19.6296 \\
+        1 & 0.6752 & 19.8015 & 7.1011 & 5.7047 & 0.1515 & 34.5063 \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption{聚类样本分布统计}
+    \label{tab:cluster-counts}
+    \begin{tabular}{lcc}
+        \toprule
+        split & cluster 0 & cluster 1 \\
+        \midrule
+        train & 1596 & 110 \\
+        test & 397 & 39 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\figuremacro{htbp!}
+            {图3_聚类样本分布柱状图.png}
+            {训练集与测试集聚类样本分布}
+            {0.82}
+            {fig:cluster-counts}
+
+\figuremacro{htbp!}
+            {图4_聚类簇画像雷达图.png}
+            {聚类簇画像雷达图}
+            {0.72}
+            {fig:cluster-profile}
+
+\subsection{补充可视化}
+
+为增强可解释性，本文补充绘制了盐度时间序列与模型误差对比图，见图\ref{fig:sal-time}与图\ref{fig:error-bar}。这些图用于支撑“时段差异”和“模型稳健性差异”的结论。
+
+\figuremacro{htbp!}
+            {图5_盐度时间序列折线图.png}
+            {盐度时间序列折线图}
+            {0.90}
+            {fig:sal-time}
+
+\figuremacro{htbp!}
+            {图6_模型误差对比柱状图.png}
+            {模型误差对比柱状图}
+            {0.82}
+            {fig:error-bar}
+
+\subsection{本章小结}
+
+结果层面可以归纳为三点：
+\begin{itemize}
+    \item Ridge在小时级与天级均显著优于普通线性回归；
+    \item 时间颗粒度对预测性能影响显著，小时级与天级不可互相替代；
+    \item 聚类虽分离度中等，但能揭示环境状态异质性并辅助解释回归误差来源。
+\end{itemize}
+
+上述结论均可由\texttt{outputs/*.csv,json}与图\ref{fig:hourly-scatter}至图\ref{fig:error-bar}对应复核。
